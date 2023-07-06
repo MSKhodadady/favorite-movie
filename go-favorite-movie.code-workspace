@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"path": "go-favorite-movie"
+		},
+		{
+			"path": "nex-favorite-movie"
+		}
+	],
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"cwd": "${workspaceFolder:nex-favorite-movie}",
+				"name": "NEXT JS",
+				"request": "launch",
+				"runtimeArgs": [
+					"run",
+					"dev"
+				],
+				"runtimeExecutable": "/home/sadeq/.volta/bin/npm",
+				"skipFiles": [
+					"<node_internals>/**"
+				],
+				"type": "node"
+			},
+			
+			{
+            "name": "GO",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder:go-favorite-movie}/main.go"
+        }]
+	}
+}
