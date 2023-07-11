@@ -1,4 +1,5 @@
 import { LoginDispatchContext } from "@/components/LoginProvider"
+import { serverAddress } from "@/components/serverAddress"
 import jwtDecode from "jwt-decode"
 import { useRouter } from "next/router"
 import { useContext, useState } from "react"
@@ -16,7 +17,7 @@ export default function LoginPage() {
   const loginDispatch = useContext(LoginDispatchContext)
 
   const submit: SubmitHandler<Inputs> = async ({ username, password }) => {
-    const res = await fetch("http://localhost:2020/api/sign-in", {
+    const res = await fetch(serverAddress() + "/sign-in", {
       method: "POST", headers: {
         "Content-Type": "application/json",
       },

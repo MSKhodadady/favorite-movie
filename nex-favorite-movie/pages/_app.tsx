@@ -1,10 +1,9 @@
-import { AlertContext, AlertProvider, AlertType, alertTypeClassName } from '@/components/AlertProvider'
-import { LoginActions, LoginDispatchContext, LoginStateContext, LoginStateProvider } from '@/components/LoginProvider'
+import { AlertContext, AlertProvider, alertTypeClassName } from '@/components/AlertProvider'
+import { LoginDispatchContext, LoginStateContext, LoginStateProvider } from '@/components/LoginProvider'
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import Link from 'next/link'
-import { NextRouter } from 'next/router'
-import { Dispatch, useContext, useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (<AlertProvider>

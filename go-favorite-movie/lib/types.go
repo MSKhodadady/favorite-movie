@@ -31,7 +31,11 @@ type (
 		DbConnStr string `json:"db-connection-string"`
 		TokenExp  int    `json:"token-exp-count"`
 		// possible values: milisec sec min hour
-		TokenExpUnit string `json:"token-exp-unit"`
+		TokenExpUnit  string `json:"token-exp-unit"`
+		ServerAddress string `json:"server-address"`
+		TLSEnabled    bool   `json:"tls-enabled"`
+		TLSCertFile   string `json:"tls-cert-file"`
+		TLSKeyFile    string `json:"tls-key-file"`
 	}
 	SearchText struct {
 		Text string `json:"text" validator:"required"`

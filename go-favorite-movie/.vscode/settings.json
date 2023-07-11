@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "autocert",
         "echojwt",
         "gocolly",
         "hackernews",
@@ -8,6 +9,8 @@
         "milisec",
         "passhash",
         "sgst",
-        "sslmode"
+        "sslmode",
+        "tbmovie",
+        "tbuser"
     ]
 }

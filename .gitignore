@@ -1,2 +1,2 @@
-go-favorite-movie/env.json
-go-favorite-movie/user-pass.txt
+*output/
+env*

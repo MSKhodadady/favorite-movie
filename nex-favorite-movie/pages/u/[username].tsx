@@ -4,6 +4,7 @@ import Page404 from "../404"
 import debounce from "@/components/debounce"
 import { LoginDispatchContext, LoginStateContext } from "@/components/LoginProvider"
 import { showAlert } from "@/components/AlertProvider"
+import { serverAddress } from "@/components/serverAddress"
 
 export default function UsernamePage() {
   const router = useRouter()
@@ -22,7 +23,7 @@ export default function UsernamePage() {
 
     const username = router.query.username
     setLoading(true)
-    fetch("http://localhost:2020/api/" + username)
+    fetch(serverAddress() + "/u/" + username)
       .then(v => {
         if (v.ok) {
           return v.json()
@@ -59,7 +60,7 @@ export default function UsernamePage() {
 
   const fetchAddFilm = useCallback(async (m: SuggestedMovie) => {
     try {
-      const res = await fetch("http://127.0.0.1:2020/api/movie", {
+      const res = await fetch(serverAddress() + "/movie", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export default function UsernamePage() {
 
   const fetchRemoveFilm = useCallback(async (m: Movie) => {
     try {
-      const res = await fetch("http://127.0.0.1:2020/api/movie", {
+      const res = await fetch(serverAddress() + "/movie", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -156,7 +157,7 @@ function SearchText(props: { onChoose: (movie: SuggestedMovie) => void }) {
       setSuggestedFilms([])
     }
     try {
-      const res = await fetch("http://localhost:2020/api/suggest", {
+      const res = await fetch(serverAddress() + "/suggest", {
         method: "POST", headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + loginState.token

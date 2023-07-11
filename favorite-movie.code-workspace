@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "nex-favorite-movie"
+		},
+		{
+			"path": "."
 		}
 	],
 	"launch": {
