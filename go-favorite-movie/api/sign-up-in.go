@@ -44,8 +44,8 @@ func SignInUpApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig) {
 		}
 	})
 
-	/* e.POST("/api/sign-up", func(c echo.Context) error {
-		u := new(lib.User)
+	e.POST("/api/sign-up", func(c echo.Context) error {
+		u := new(lib.SignUpUser)
 
 		if err := c.Bind(u); err != nil {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -53,24 +53,45 @@ func SignInUpApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig) {
 			return err
 		}
 
-		var dbUser string
-		err := db.
+		var dbUser, dbEmail string
+		errUsername := db.
 			QueryRow(
-				"SELECT username FROM tbUser where username = $1", u.Name).
+				"SELECT username FROM tbUser WHERE username = $1", u.Username).
 			Scan(&dbUser)
 
-		switch err {
+		errEmail := db.
+			QueryRow(
+				"SELECT email FROM tbUser WHERE email = $1", u.Email).
+			Scan(&dbEmail)
+		// means there some record exist with that username or email
+		if errUsername == nil || errEmail == nil {
+			return c.JSON(http.StatusConflict, map[string]bool{
+				"username": errUsername == nil,
+				"email":    errEmail == nil,
+			})
+		}
+		// panic if there exists another error other than ErrNoRows
+		if errUsername != sql.ErrNoRows {
+			panic(errUsername)
+		}
+		if errEmail != sql.ErrNoRows {
+			panic(errEmail)
+		}
+
+		return c.String(200, "OK")
+
+		/* switch err {
 		case sql.ErrNoRows:
-			db.Exec(lib.QSignUp, u.Name, hashPass(u.Password))
+			db.Exec(lib.QSignUp, u.Name, lib.HashPass(u.Password))
 
 			return c.JSON(http.StatusOK, map[string]string{
-				"token": createToken(u.Name, appConf.JwtKey),
+				"token": lib.CreateToken(u.Name, appConf),
 			})
 		case nil:
 			return c.String(http.StatusConflict, "another username")
 		default:
 			panic(err)
-		}
+		} */
 
-	}) */
+	})
 }

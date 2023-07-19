@@ -77,9 +77,9 @@ function AppNavBar() {
         </div>
         :
         <>
-          <li><LoginButton text='Log in' link='/login' /></li>
+          <li><LoginButton text='Sign In' link='/sign-in' /></li>
           <li>
-            <LoginButton text='Sign in' link='/sign-in'></LoginButton>
+            <LoginButton text='Sign Up' link='/sign-up'></LoginButton>
           </li>
         </>}
     </ul>

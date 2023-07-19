@@ -1,16 +1,20 @@
 {
     "cSpell.words": [
         "autocert",
+        "daisyui",
         "echojwt",
         "gocolly",
         "hackernews",
         "hlblwg",
         "labstack",
         "milisec",
+        "ozzo",
         "passhash",
         "sgst",
         "sslmode",
         "tbmovie",
-        "tbuser"
+        "tbuser",
+        "Validatable",
+        "varchar"
     ]
 }

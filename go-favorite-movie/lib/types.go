@@ -1,22 +1,17 @@
 package myPac
 
 import (
-	"net/http"
-
-	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
 )
 
 type (
 	Movie struct {
-		Name string `json:"name" validate:"required" selector:"div>div>a"`
-		Year string `json:"year" validate:"required" selector:"div>div>ul>li>span"`
+		Name string `json:"name" selector:"div>div>a"`
+		Year string `json:"year" selector:"div>div>ul>li>span"`
 	}
 	User struct {
-		Name     string `json:"username" validator:"required|ascii"`
-		Password string `json:"password" validator:"required"`
+		Name     string `json:"username"`
+		Password string `json:"password"`
 	}
 	UserRC struct {
 		User
@@ -38,46 +33,15 @@ type (
 		TLSKeyFile    string `json:"tls-key-file"`
 	}
 	SearchText struct {
-		Text string `json:"text" validator:"required"`
+		Text string `json:"text"`
 	}
 	Suggestion struct {
 		Movie
-		Hash string `json:"hash" validator:"required"`
+		Hash string `json:"hash"`
+	}
+	SignUpUser struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 )
-
-func (m Movie) Validate() error {
-	return validation.ValidateStruct(&m,
-		validation.Field(&m.Name, validation.Required),
-		validation.Field(&m.Year, validation.Required),
-	)
-}
-
-func (u User) Validate() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.Name, validation.Required, is.ASCII),
-		validation.Field(&u.Password, validation.Required))
-}
-
-func (s SearchText) Validate() error {
-	return validation.ValidateStruct(&s,
-		validation.Field(&s.Text, validation.Required))
-}
-
-func (sgst Suggestion) Validate() error {
-	return validation.ValidateStruct(&sgst,
-		validation.Field(&sgst.Movie),
-		validation.Field(&sgst.Hash, validation.Required))
-}
-
-func (cv CustomValidator) Validate(i any) error {
-	v, ok := i.(validation.Validatable)
-	if ok {
-		if err := v.Validate(); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-	} else {
-		panic("value isn't validator")
-	}
-	return nil
-}

@@ -3,8 +3,10 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 	"regexp"
+	"time"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -14,7 +16,6 @@ import (
 	lib "sadeq.go/favorite-movie/lib"
 )
 
-// : MAIN ----------------------------------------------------------------------
 func main() {
 
 	//: app config ------------------------------------------------------------
@@ -56,6 +57,62 @@ func main() {
 
 	defer db.Close()
 
+	//: migrations ------------------------------------------------------------
+	var migrationVersion int
+	var lastMigrations time.Time
+
+	fmt.Println("-- checking db migrations")
+
+	errDb := db.
+		QueryRow("SELECT migration_version, last_migration FROM tb_config;").
+		Scan(&migrationVersion, &lastMigrations)
+
+	/* sort.Slice(lib.MigrationQueries, func(i, j int) bool {
+		return lib.MigrationQueries[i].Version < lib.MigrationQueries[j].Version
+	}) */
+
+	if errDb != nil {
+		if errDb.Error() == "pq: relation \"tb_config\" does not exist" {
+			fmt.Println("-- there isn't any table, running migration 1:")
+			mig := lib.MigrationQueries[0]
+			fmt.Println("-- mig version: ", mig.Version, " - ", mig.Message)
+			for _, v := range mig.Queries {
+				fmt.Println(v)
+				_, errQ := db.Exec(v)
+				if errQ != nil {
+					fmt.Println(errQ)
+				}
+			}
+			migrationVersion = 1
+		} else {
+			panic(errDb)
+		}
+	}
+
+	lastMigrationVersion := lib.MigrationQueries[len(lib.MigrationQueries)-1].Version
+	fmt.Println("-- db migration version: ", migrationVersion)
+	fmt.Println("-- last migration: ", lastMigrationVersion)
+
+	if migrationVersion == lastMigrationVersion {
+		fmt.Println("-- db is up to latest migration!")
+	} else {
+		fmt.Println("-- upgrading db to latest migration")
+
+		for _, mig := range lib.MigrationQueries {
+			if mig.Version > migrationVersion {
+				fmt.Println("-- mig version: ", mig.Version, " -- ", mig.Message)
+				for _, v := range mig.Queries {
+					fmt.Println(v)
+					_, errQ := db.Exec(v)
+					if errQ != nil {
+						fmt.Println(errQ)
+					}
+				}
+			}
+		}
+	}
+
+	//: APIS -------------------------------------------------------------
 	//: user movie list
 	apis.UserMovieList(e, db, appConf)
 	//: add movie
@@ -68,6 +125,7 @@ func main() {
 	apis.UsernameList(e, db)
 	//: frontend
 	e.Static("/", "frontend")
+	e.File("/u/:username", "frontend/u/[username].html")
 	//: start server
 	if appConf.TLSEnabled {
 		e.Logger.Info(e.StartTLS(appConf.ServerAddress, appConf.TLSCertFile, appConf.TLSKeyFile))
