@@ -1,9 +1,12 @@
 package myPac
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 )
 
 func CreateToken(username string, appConf AppConfig) string {
@@ -38,4 +41,24 @@ func CreateToken(username string, appConf AppConfig) string {
 	}
 
 	return s
+}
+
+func ExtractUsernameToken(c echo.Context) string {
+	username := c.
+		Get("user").(*jwt.Token).
+		Claims.(jwt.MapClaims)["username"].(string)
+
+	return username
+}
+
+func HashPass(pass string) string {
+	return base64.StdEncoding.EncodeToString(sha256.New().Sum([]byte(pass)))
+}
+
+func FullServerAddress(c AppConfig) string {
+	if c.TLS.Enabled {
+		return "https://" + c.ServerAddress
+	} else {
+		return "http://" + c.ServerAddress
+	}
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	"gopkg.in/gomail.v2"
 	apis "sadeq.go/favorite-movie/api"
 	lib "sadeq.go/favorite-movie/lib"
 )
@@ -67,10 +68,6 @@ func main() {
 		QueryRow("SELECT migration_version, last_migration FROM tb_config;").
 		Scan(&migrationVersion, &lastMigrations)
 
-	/* sort.Slice(lib.MigrationQueries, func(i, j int) bool {
-		return lib.MigrationQueries[i].Version < lib.MigrationQueries[j].Version
-	}) */
-
 	if errDb != nil {
 		if errDb.Error() == "pq: relation \"tb_config\" does not exist" {
 			fmt.Println("-- there isn't any table, running migration 1:")
@@ -111,14 +108,20 @@ func main() {
 			}
 		}
 	}
+	//: EMAIL -----------------------------------------------------------------
+	emailDialer := gomail.NewDialer(
+		appConf.Smtp.Host,
+		appConf.Smtp.Port,
+		appConf.Smtp.Username,
+		appConf.Smtp.Password)
 
-	//: APIS -------------------------------------------------------------
+	//: APIS ------------------------------------------------------------------
 	//: user movie list
 	apis.UserMovieList(e, db, appConf)
 	//: add movie
 	apis.AddDelMovieApi(e, db, appConf)
 	//: sign-up sign-in
-	apis.SignInUpApi(e, db, appConf)
+	apis.SignInUpApi(e, db, appConf, emailDialer)
 	//: suggest film
 	apis.SuggestFilmApi(e, appConf)
 	//: user list
@@ -127,9 +130,10 @@ func main() {
 	e.Static("/", "frontend")
 	e.File("/u/:username", "frontend/u/[username].html")
 	//: start server
-	if appConf.TLSEnabled {
-		e.Logger.Info(e.StartTLS(appConf.ServerAddress, appConf.TLSCertFile, appConf.TLSKeyFile))
+	fmt.Println("-- server address: ", lib.FullServerAddress(appConf))
+	if appConf.TLS.Enabled {
+		e.Logger.Error(e.StartTLS(appConf.ServerAddress, appConf.TLS.CertFile, appConf.TLS.KeyFile))
 	} else {
-		e.Logger.Info(e.Start(appConf.ServerAddress))
+		e.Logger.Error(e.Start(appConf.ServerAddress))
 	}
 }
