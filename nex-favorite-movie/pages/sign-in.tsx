@@ -1,3 +1,4 @@
+import { showAlert } from "@/components/AlertProvider"
 import { LoginDispatchContext } from "@/components/LoginProvider"
 import SignLayout from "@/components/SignLayout"
 import { serverAddress } from "@/components/serverAddress"
@@ -32,10 +33,6 @@ export default function LoginPage() {
       const body: { token: string } = await res.json()
       const payload: Payload = jwtDecode(body.token)
 
-      window.localStorage.setItem("token", body.token)
-      window.localStorage.setItem("username", payload.username)
-      window.localStorage.setItem("exp", payload.exp.toString())
-
       loginDispatch!({
         type: 'login',
         payload: {
@@ -54,6 +51,8 @@ export default function LoginPage() {
     } else {
       console.log(res.status)
       console.log(await res.text())
+
+      showAlert('unknown error', 'warning')
     }
   }
 

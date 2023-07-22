@@ -40,6 +40,7 @@ type (
 			Username string `json:"username"`
 			Password string `json:"password"`
 		} `json:"smtp"`
+		FrontendAddress string `json:"frontend-address"`
 	}
 	SearchText struct {
 		Text string `json:"text"`

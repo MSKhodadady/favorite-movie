@@ -21,7 +21,14 @@ func SuggestFilmApi(e *echo.Echo, appConf lib.AppConfig) {
 			return err
 		}
 
-		ms := lib.SearchForMovieName(sgst.Text)
+		ms, errs := lib.SearchForMovieName(sgst.Text)
+
+		if len(ms) == 0 && len(errs) > 0 {
+			fmt.Println("-- error: ", errs)
+			return c.String(http.StatusInternalServerError, "")
+		} else if len(errs) > 0 {
+			fmt.Println("-- error: ", errs)
+		}
 
 		msWithHas := make([]lib.Suggestion, len(ms))
 

@@ -121,7 +121,9 @@ func main() {
 	//: add movie
 	apis.AddDelMovieApi(e, db, appConf)
 	//: sign-up sign-in
-	apis.SignInUpApi(e, db, appConf, emailDialer)
+	apis.SignInApi(e, db, appConf)
+	//: sign-up verify
+	apis.SignUpVerifyApi(e, db, appConf, emailDialer)
 	//: suggest film
 	apis.SuggestFilmApi(e, appConf)
 	//: user list

@@ -2,6 +2,8 @@ package apis
 
 import (
 	"database/sql"
+	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	lib "sadeq.go/favorite-movie/lib"
@@ -24,7 +26,8 @@ func UserMovieList(e *echo.Echo, db *sql.DB, appConf lib.AppConfig) {
 				Query(`SELECT movie_name, "year"
 				FROM tbMovie WHERE username = $1`, username)
 			if err != nil {
-				panic(err)
+				fmt.Println("-- error: ", err)
+				return c.String(http.StatusInternalServerError, "")
 			}
 			var res []lib.Movie
 			for rows.Next() {
@@ -40,7 +43,8 @@ func UserMovieList(e *echo.Echo, db *sql.DB, appConf lib.AppConfig) {
 				"movies":   res,
 			})
 		default:
-			panic(err)
+			fmt.Println("-- error: ", err)
+			return c.String(http.StatusInternalServerError, "")
 		}
 	})
 }

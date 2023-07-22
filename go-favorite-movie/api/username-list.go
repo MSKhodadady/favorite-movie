@@ -2,6 +2,8 @@ package apis
 
 import (
 	"database/sql"
+	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	myPac "sadeq.go/favorite-movie/lib"
@@ -13,7 +15,8 @@ func UsernameList(e *echo.Echo, db *sql.DB) {
 		rows, err := db.Query(myPac.QFirst20UserName)
 
 		if err != nil {
-			panic(err)
+			fmt.Println("-- error: ", err)
+			return c.String(http.StatusInternalServerError, "")
 		}
 
 		type UserMovieCount struct {

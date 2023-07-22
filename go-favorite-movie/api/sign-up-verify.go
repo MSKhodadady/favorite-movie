@@ -9,52 +9,17 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"gopkg.in/gomail.v2"
-
-	lib "sadeq.go/favorite-movie/lib"
+	l "sadeq.go/favorite-movie/lib"
 )
 
 type SignUpUserRC struct {
-	lib.SignUpUser
+	l.SignUpUser
 	*jwt.RegisteredClaims
 }
 
-func SignInUpApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig, emailDialer *gomail.Dialer) {
-	e.POST("/api/sign-in", func(c echo.Context) error {
-		u := new(lib.User)
-
-		if err := c.Bind(u); err != nil {
-			return c.String(http.StatusBadRequest, "bad request")
-		} else if err := c.Validate(u); err != nil {
-			return err
-		}
-
-		var dbUser string
-		var dbPassHash string
-		err := db.
-			QueryRow(lib.QSignIn, u.Name).
-			Scan(&dbUser, &dbPassHash)
-
-		switch err {
-		case sql.ErrNoRows:
-			return c.String(http.StatusNotFound, "username or password")
-		case nil:
-			passHash := lib.HashPass(u.Password)
-
-			if dbPassHash == passHash {
-
-				return c.JSON(http.StatusOK, map[string]string{
-					"token": lib.CreateToken(dbUser, appConf),
-				})
-			} else {
-				return c.String(http.StatusNotFound, "username or password")
-			}
-		default:
-			panic(err)
-		}
-	})
-
+func SignUpVerifyApi(e *echo.Echo, db *sql.DB, appConf l.AppConfig, emailDialer *gomail.Dialer) {
 	e.POST("/api/sign-up", func(c echo.Context) error {
-		u := new(lib.SignUpUser)
+		u := new(l.SignUpUser)
 
 		if err := c.Bind(u); err != nil {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -79,32 +44,30 @@ func SignInUpApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig, emailDialer *g
 				"email":    errEmail == nil,
 			})
 		}
-		// panic if there exists another error other than ErrNoRows
-		if errUsername != sql.ErrNoRows {
-			panic(errUsername)
+		// internal error if there exists another error other than ErrNoRows
+		if errUsername != sql.ErrNoRows || errEmail != sql.ErrNoRows {
+			fmt.Println("-- error: ", errUsername)
+			return c.String(http.StatusInternalServerError, "")
 		}
-		if errEmail != sql.ErrNoRows {
-			panic(errEmail)
-		}
-
+		// hashing password
+		u.Password = l.HashPass(u.Password)
 		// create token
-
 		t := jwt.NewWithClaims(jwt.SigningMethodHS256, SignUpUserRC{
 			SignUpUser: *u,
 			RegisteredClaims: &jwt.RegisteredClaims{
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+				ExpiresAt: jwt.NewNumericDate(l.CalculateTokenExp(appConf)),
 			},
 		})
 
 		s, err := t.SignedString([]byte(appConf.SignUpJwtToken))
 
 		if err != nil {
-			panic(err)
+			fmt.Println("-- error: ", err)
+			return c.String(http.StatusInternalServerError, "")
 		}
 		// create email url
-		// TODO must refer to fronted
-		url := lib.FullServerAddress(appConf) + "/api/verify?token=" + s
+		url := appConf.FrontendAddress + "/verify?token=" + s
 		// create email body
 		body := fmt.Sprintf(`
 		<html>
@@ -117,8 +80,8 @@ func SignInUpApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig, emailDialer *g
 
 		// send email
 		m := gomail.NewMessage()
-		m.SetHeader("From", "one.worship@outlook.com")
-		m.SetHeader("To", "worldofshie@gmail.com")
+		m.SetHeader("From", appConf.Smtp.Username)
+		m.SetHeader("To", u.Email)
 		m.SetHeader("Subject", "FavMov Verification Email")
 		m.SetBody("text/html", body)
 
@@ -134,21 +97,47 @@ func SignInUpApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig, emailDialer *g
 	e.GET("/api/verify", func(c echo.Context) error {
 		tokenString := c.QueryParam("token")
 
-		token, err := jwt.ParseWithClaims(tokenString, &SignUpUserRC{}, func(t *jwt.Token) (interface{}, error) {
-			return []byte(appConf.SignUpJwtToken), nil
-		})
+		if tokenString == "" {
+			return c.String(http.StatusBadRequest, "not any token!")
+		}
+
+		token, err := jwt.ParseWithClaims(
+			tokenString,
+			&SignUpUserRC{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(appConf.SignUpJwtToken), nil
+			},
+			// we hashed the password and it will fail in validation,
+			// so we disable validation
+			jwt.WithoutClaimsValidation())
 
 		if err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
+			return c.String(http.StatusNotAcceptable, err.Error())
 		}
 
 		claims := token.Claims.(*SignUpUserRC)
 
-		fmt.Println(claims)
-		// TODO add user to db
+		if time.Now().After(claims.ExpiresAt.Time) {
+			return c.String(http.StatusUnauthorized, "token expired")
+		}
+		// add user to db
+		_, errDb := db.Exec(l.QAddUser, claims.Username, claims.Password, claims.Email)
 
-		return c.String(200, "token verified!")
+		if errDb != nil {
+			fmt.Println(errDb)
+			return c.String(http.StatusInternalServerError, "")
+		}
+
+		loginToken, err := l.CreateToken(claims.Username, appConf)
+
+		if err != nil {
+			fmt.Println("-- error: ", err)
+			return c.String(http.StatusInternalServerError, "")
+		}
+
+		return c.JSON(200, map[string]string{
+			"token": loginToken,
+		})
 
 	})
-
 }

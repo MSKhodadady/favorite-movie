@@ -23,19 +23,11 @@ export default function UsernamePage() {
 
     const username = router.query.username
     setLoading(true)
-    fetch(serverAddress() + "/u/" + username)
-      .then(v => {
-        if (v.ok) {
-          return v.json()
-        } else if (v.status == 404) {
-          setLoading(false)
-          setUserNotFound(true)
-        } else {
-          return Promise.reject("error occurred!")
-        }
-      })
-      .then((body: { movies: Movie[], username: string }) => {
-        if (body === undefined) return
+
+    const fetchData = async () => {
+      const v = await fetch(serverAddress() + "/u/" + username)
+      if (v.ok) {
+        const body = await v.json()
 
         setLikedMovies(body.movies == null ? [] : body.movies)
         setLoading(false)
@@ -47,9 +39,19 @@ export default function UsernamePage() {
           setEditMode(false)
         }
 
-      }).catch(err => {
-        console.log(err)
-      })
+      } else if (v.status == 404) {
+        setLoading(false)
+        setUserNotFound(true)
+      } else {
+        console.log(v.status)
+        console.log(await v.text)
+
+        showAlert('unknown error', 'warning')
+      }
+    }
+
+    fetchData().catch(console.error)
+
   }, [router.isReady, router.query])
 
 
@@ -81,9 +83,12 @@ export default function UsernamePage() {
       } else {
         console.log(res.status)
         console.log(await res.text)
+
+        showAlert('unknown error', 'warning')
       }
     } catch (error) {
       console.error(error)
+      showAlert('unknown error', 'warning')
     }
   }, [])
 
@@ -107,9 +112,12 @@ export default function UsernamePage() {
       } else {
         console.log(res.status)
         console.log(await res.text)
+
+        showAlert('unknown error', 'warning')
       }
     } catch (error) {
       console.error(error)
+      showAlert('unknown error', 'warning')
     }
   }, [])
 
@@ -132,6 +140,7 @@ export default function UsernamePage() {
               fetchAddFilm(s)
               setIsAddNew(false)
             }} />
+            {/* cancel add film */}
             <button
               className="btn ml-3"
               onClick={() => setIsAddNew(false)}>
@@ -177,9 +186,11 @@ function SearchText(props: { onChoose: (movie: SuggestedMovie) => void }) {
       } else {
         console.log(res.status)
         console.log(await res.text)
+        showAlert('unknown error', 'warning')
       }
     } catch (error) {
       console.error(error)
+      showAlert('unknown error', 'warning')
     }
   }, [])
 

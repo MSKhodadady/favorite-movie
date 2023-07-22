@@ -19,6 +19,9 @@ export interface LoginActions {
 const reducer = (s: LoginState, a: LoginActions): LoginState => {
   switch (a.type) {
     case 'login':
+      window.localStorage.setItem("token", a.payload!.token)
+      window.localStorage.setItem("username", a.payload!.username)
+      window.localStorage.setItem("exp", a.payload!.exp.toString())
       return {
         isLoggedIn: true,
         ...a.payload!

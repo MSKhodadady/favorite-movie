@@ -17,8 +17,8 @@ const (
 	QSignIn = `SELECT username, passHash 
 	FROM tbUser WHERE username = $1`
 
-	QSignUp = `INSERT INTO tbUser (username, passhash)
-	VALUES ($1, $2);`
+	QAddUser = `INSERT INTO tbUser (username, passhash, email)
+	VALUES ($1, $2, $3);`
 
 	QAddMovie = `INSERT INTO public.tbmovie (username, movie_name, "year")
 	VALUES($1, $2, $3);`

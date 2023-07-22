@@ -10,7 +10,7 @@ import (
 //: div>div>a
 //: div>div>ul>li>span
 
-func SearchForMovieName(txt string) []*Movie {
+func SearchForMovieName(txt string) ([]*Movie, []error) {
 
 	movies := make([]*Movie, 0)
 
@@ -20,6 +20,8 @@ func SearchForMovieName(txt string) []*Movie {
 		r.Headers.Set("Accept-Language", "en-US")
 	})
 
+	collectErr := make([]error, 0)
+
 	collector.OnHTML("section[data-testid=\"find-results-section-title\"]"+
 		">div>ul>li", func(h *colly.HTMLElement) {
 
@@ -27,15 +29,15 @@ func SearchForMovieName(txt string) []*Movie {
 		err := h.Unmarshal(f)
 
 		if err != nil {
-			panic(err)
+			collectErr = append(collectErr, err)
+		} else {
+			movies = append(movies, f)
 		}
-
-		movies = append(movies, f)
 	})
 
 	visitUrl := "https://www.imdb.com/find/?q=" + url.QueryEscape(txt)
 
 	collector.Visit(visitUrl)
 
-	return movies
+	return movies, collectErr
 }

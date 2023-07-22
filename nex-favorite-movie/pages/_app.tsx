@@ -84,7 +84,7 @@ function AppNavBar() {
         </>}
     </ul>
     {alertProvider.alertState.show && <div
-      className={"alert z-10 absolute left-2 bottom-2 w-fit " + alertTypeClassName(alertProvider.alertState.type)}>
+      className={"alert z-10 left-6 bottom-6 w-fit fixed" + " " + alertTypeClassName(alertProvider.alertState.type)}>
       <p>{alertProvider.alertState.text}</p>
     </div>}
   </nav>)

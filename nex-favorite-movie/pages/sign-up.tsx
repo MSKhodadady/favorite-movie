@@ -1,4 +1,7 @@
+import { showAlert } from "@/components/AlertProvider";
 import SignLayout from "@/components/SignLayout";
+import { serverAddress } from "@/components/serverAddress";
+import { useRouter } from "next/router";
 import { FieldValue, LiteralUnion, RegisterOptions, UseFormRegister, useForm } from "react-hook-form";
 
 type Inputs = {
@@ -11,21 +14,39 @@ export default function SignPage() {
 
   const { register, handleSubmit, formState: { errors }, setError } = useForm<Inputs>()
 
-  const onSubmit = handleSubmit(data => {
-    var errored = false
-    if (data.email == 'sadeq@email.com') {
-      setError('email', { type: 'value', message: 'duplicate email found!' })
-      errored = true
+  const router = useRouter()
+
+  const onSubmit = handleSubmit(async data => {
+    const res = await fetch(serverAddress() + '/sign-up', {
+      method: 'POST',
+      headers: { "Content-Type": "application/json", },
+      body: JSON.stringify({
+        username: data.username,
+        password: data.password,
+        email: data.email,
+      })
+    });
+
+    if (res.status == 409) {
+      const body: { username: boolean, email: boolean } = await res.json()
+
+      if (body.username) {
+        setError('username', { type: 'value', message: 'chosen before' })
+      }
+      if (body.email) {
+        setError('email', { type: 'value', message: 'chosen before' })
+      }
+
+      return
+    } else if (res.ok) {
+      showAlert('verification email sent. check your email', 'success')
+      router.push('/')
+    } else {
+      console.log(res)
+      console.log(await res.text())
+
+      showAlert('unknown error', 'warning')
     }
-
-    if (data.username == 'sadeq1') {
-      setError('username', { type: 'value', message: 'duplicate username found!' })
-      errored = true
-    }
-
-    if (errored) return
-
-    console.log(data)
   })
 
   return (<SignLayout onSubmit={onSubmit} header="Sign Up">
@@ -58,7 +79,7 @@ export default function SignPage() {
       {...register("password", {
         required: true,
         pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,}$/
-      })} // TODO:
+      })}
       type="password" placeholder="Password"
       className={`input mb-1 ${errors.password != null ? " input-error" : ""}`} />
     <span className="text-red-600 text-sm mb-2">{matchCase({

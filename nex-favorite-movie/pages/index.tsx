@@ -1,3 +1,4 @@
+import { showAlert } from "@/components/AlertProvider"
 import { serverAddress } from "@/components/serverAddress"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -23,6 +24,8 @@ export default function Home() {
       } else {
         console.error(res.status)
         console.error(await res.text())
+
+        showAlert('unknown error', 'warning')
       }
 
       setIsLoading(false)

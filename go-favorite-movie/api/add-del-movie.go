@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -59,11 +60,13 @@ func AddDelMovieApi(e *echo.Echo, db *sql.DB, appConf lib.AppConfig) {
 			username, m.Name, m.Year)
 
 		if err != nil {
-			panic(err)
+			fmt.Println("-- error: ", err)
+			return c.String(http.StatusInternalServerError, "")
 		}
 
 		if ra, err := res.RowsAffected(); err != nil {
-			panic(err)
+			fmt.Println("-- error: ", err)
+			return c.String(http.StatusInternalServerError, "")
 		} else if ra == 0 {
 			return c.String(http.StatusBadGateway, "no such movie of user")
 		}

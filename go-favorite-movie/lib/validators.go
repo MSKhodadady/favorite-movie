@@ -1,6 +1,7 @@
 package myPac
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 
@@ -24,8 +25,9 @@ func (u User) Validate() error {
 		),
 		validation.Field(&u.Password,
 			validation.Required,
-			validation.Length(8, 0),
-			validation.Match(regexp.MustCompile("^[a-zA-Z0-9@$!%*?&_]*$")),
+			// TODO not sure!
+			// validation.Length(8, 0),
+			// validation.Match(regexp.MustCompile("^[a-zA-Z0-9@$!%*?&_]*$")),
 		),
 	)
 }
@@ -69,7 +71,9 @@ func (cv CustomValidator) Validate(i any) error {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 	} else {
-		panic("value isn't validator")
+		fmt.Println("value isn't validator")
+		return echo.NewHTTPError(http.StatusInternalServerError, "")
+
 	}
 	return nil
 }
