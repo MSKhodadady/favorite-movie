@@ -74,7 +74,7 @@ export default function UsernamePage() {
       if (res.status == 401) {
         showAlert('Login Expired', 'warning')
         loginDispatch!({ type: 'logout' })
-        router.push("/login")
+        router.push("/sign-in")
       } else if (res.status == 409) {
         showAlert('chosen before!', 'error')
       } else if (res.ok) {
@@ -105,7 +105,7 @@ export default function UsernamePage() {
       if (res.status == 401) {
         showAlert('Login Expired', 'warning')
         loginDispatch!({ type: 'logout' })
-        router.push("/login")
+        router.push("/sign-in")
       } else if (res.ok) {
         setLikedMovies(ms => ms.filter(m_ => m_.name != m.name && m_.year != m.year))
         showAlert("Movie Removed!", 'warning')
@@ -164,6 +164,7 @@ function SearchText(props: { onChoose: (movie: SuggestedMovie) => void }) {
   const fetchSuggestedFilms = useCallback(async (s: string) => {
     if (s == "") {
       setSuggestedFilms([])
+      return
     }
     try {
       const res = await fetch(serverAddress() + "/suggest", {
@@ -178,7 +179,7 @@ function SearchText(props: { onChoose: (movie: SuggestedMovie) => void }) {
       if (res.status == 401) {
         showAlert('Login Expired')
         loginDispatch!({ type: 'logout' })
-        router.push("/login")
+        router.push("/sign-in")
 
       } else if (res.ok) {
         const body: SuggestedMovie[] = await res.json()
@@ -194,7 +195,7 @@ function SearchText(props: { onChoose: (movie: SuggestedMovie) => void }) {
     }
   }, [])
 
-  return (<div className={`dropdown grow `}>
+  return (<div className={`dropdown grow dropdown-open `}>
     <input
       tabIndex={0} autoFocus
       className='p-3 text-lg input border-black w-full'
@@ -204,7 +205,7 @@ function SearchText(props: { onChoose: (movie: SuggestedMovie) => void }) {
     <ul
       tabIndex={0}
       className={`dropdown-content menu z-[1] p-2 shadow bg-base-100 rounded-box w-full ${suggestedFilms.length == 0 ? " hidden" : ""}`}>
-      {suggestedFilms.map(s => <li key={s.hash} className="w-full"><a onClick={() => {
+      {suggestedFilms.map(s => <li key={s.hash} className="w-full"><a className="block" onClick={() => {
         props.onChoose(s)
       }}>{s.name} - {s.year}</a></li>)}
     </ul>

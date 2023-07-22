@@ -67,9 +67,9 @@ function AppNavBar() {
       </li>
       {loginState.isLoggedIn ?
         <div className="dropdown dropdown-hover dropdown-left p-2">
-          <span className='text-lg'>
+          <label tabIndex={0} className='text-lg'>
             Hello <span className='inline font-bold'>{loginState.username}</span>
-          </span>
+          </label>
           <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
             <li><Link href={`/u/${loginState.username}`}>User Page</Link></li>
             <li><a onClick={logOut}>Logout</a></li>
