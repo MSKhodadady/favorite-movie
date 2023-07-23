@@ -129,8 +129,13 @@ func main() {
 	//: user list
 	apis.UsernameList(e, db)
 	//: frontend
-	e.Static("/", "frontend")
 	e.File("/u/:username", "frontend/u/[username].html")
+	e.File("/sign-up", "frontend/sign-up.html")
+	e.File("/sign-in", "frontend/sign-in.html")
+	e.File("/verify", "frontend/verify.html")
+	e.File("/404", "frontend/404.html")
+
+	e.Static("/", "frontend")
 	//: start server
 	fmt.Println("-- server address: ", lib.FullServerAddress(appConf))
 	if appConf.TLS.Enabled {

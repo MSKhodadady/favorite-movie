@@ -27,27 +27,20 @@ func SignUpVerifyApi(e *echo.Echo, db *sql.DB, appConf l.AppConfig, emailDialer 
 			return err
 		}
 
-		var dbUser, dbEmail string
-		errUsername := db.
-			QueryRow(
-				"SELECT username FROM tbUser WHERE username = $1", u.Username).
-			Scan(&dbUser)
+		userExist, errU := l.CheckDBExist("username", "tbUser", u.Username, db)
+		emailExist, errE := l.CheckDBExist("email", "tbUser", u.Email, db)
 
-		errEmail := db.
-			QueryRow(
-				"SELECT email FROM tbUser WHERE email = $1", u.Email).
-			Scan(&dbEmail)
-		// means there some record exist with that username or email
-		if errUsername == nil || errEmail == nil {
-			return c.JSON(http.StatusConflict, map[string]bool{
-				"username": errUsername == nil,
-				"email":    errEmail == nil,
-			})
-		}
-		// internal error if there exists another error other than ErrNoRows
-		if errUsername != sql.ErrNoRows || errEmail != sql.ErrNoRows {
-			fmt.Println("-- error: ", errUsername)
+		if errU != nil || errE != nil {
+			fmt.Println("-- err: username: ", errU)
+			fmt.Println("-- err: email: ", errE)
 			return c.String(http.StatusInternalServerError, "")
+		}
+
+		if userExist || emailExist {
+			return c.JSON(http.StatusConflict, map[string]bool{
+				"username": userExist,
+				"email":    emailExist,
+			})
 		}
 		// hashing password
 		u.Password = l.HashPass(u.Password)
@@ -120,6 +113,20 @@ func SignUpVerifyApi(e *echo.Echo, db *sql.DB, appConf l.AppConfig, emailDialer 
 		if time.Now().After(claims.ExpiresAt.Time) {
 			return c.String(http.StatusUnauthorized, "token expired")
 		}
+
+		// check if token used to create a user
+		// une, errUsername := l.CheckUsernameExist(claims.Username, db)
+		une, errUsername := l.CheckDBExist("username", "tbUser", claims.Username, db)
+
+		if errUsername != nil {
+			fmt.Println("-- error: ", errUsername)
+			return c.String(http.StatusInternalServerError, "")
+		}
+
+		if une {
+			return c.String(http.StatusUnauthorized, "token expired")
+		}
+
 		// add user to db
 		_, errDb := db.Exec(l.QAddUser, claims.Username, claims.Password, claims.Email)
 

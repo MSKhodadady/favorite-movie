@@ -3,6 +3,7 @@ import { LoginDispatchContext } from "@/components/LoginProvider"
 import SignLayout from "@/components/SignLayout"
 import { serverAddress } from "@/components/serverAddress"
 import jwtDecode from "jwt-decode"
+import Link from "next/link"
 import { useRouter } from "next/router"
 import { useContext, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -79,5 +80,6 @@ export default function LoginPage() {
       className={`btn ${userNotFound ? " btn-error" : ""}`}>
       {userNotFound ? "USER OR PASSWORD IS INCORRECT" : "SIGN IN"}
     </button>
+    <Link href="/forget-pass" className="pt-2 text-red-500">Forget Username or Password</Link>
   </SignLayout>)
 }

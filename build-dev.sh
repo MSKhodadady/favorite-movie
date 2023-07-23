@@ -1,28 +1,36 @@
 #!/usr/bin/bash
 
-next_project="nex-favorite-movie"
-go_projcet="go-favorite-movie"
+# folders
+frontend_folder="nex-favorite-movie"
+backend_folder="go-favorite-movie"
+build_output="build-output"
 
-echo "--- build frontend ---"
-cd $next_project
+# building the frontend files
+echo    "----------<< build frontend >>----------"
+## going to frontend folder
+cd      $frontend_folder
+## building
 NEXT_PUBLIC_SERVER_ADDRESS="/api" npm run build
 
-cd ..
-
-echo "--- build backend ---"
-cd $go_projcet
+# buiding backend files
+echo    "----------<< build backend >>----------"
+## goid to backend folder
+cd      ../$backend_folder
 CGO_ENABLED="0" GOOS=linux GOARCH=amd64 go build -o go-bin
 
-cd ..
-
-echo "--- pack files ---"
-rm -r build-output
-mkdir build-output
-cd build-output
-
-mv ../$next_project/out ./frontend
-
-mv ../$go_projcet/go-bin ./
-cp ../$go_projcet/env.json ./
-cp ../$go_projcet/localhost.pem ./
-cp ../$go_projcet/localhost-key.pem ./
+# packing files
+echo    "----------<< pack files >>----------"
+## going to home folder
+cd      ..
+## delete previous build output
+rm -r   $build_output
+## creating new build output
+mkdir   $build_output
+## going to that folder
+cd      $build_output
+## cp env file
+cp      ../env.production.json      ./env.json
+## mv frontend build output files
+mv      ../$frontend_folder/out     ./frontend
+## mv backend build output files
+mv      ../$backend_folder/go-bin   ./

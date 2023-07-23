@@ -2,7 +2,9 @@ package myPac
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -66,5 +68,23 @@ func FullServerAddress(c AppConfig) string {
 		return "https://" + c.ServerAddress
 	} else {
 		return "http://" + c.ServerAddress
+	}
+}
+
+func CheckDBExist(field string, table string, strValue any, db *sql.DB) (bool, error) {
+	var dbValue string
+
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s = $1", field, table, field)
+
+	err := db.
+		QueryRow(query, strValue).Scan(&dbValue)
+
+	switch err {
+	case nil: // found one
+		return true, nil
+	case sql.ErrNoRows:
+		return false, nil
+	default:
+		return false, err
 	}
 }
